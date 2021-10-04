@@ -1,8 +1,9 @@
 package com.music.webservice.config;
 
 
-import com.music.webservice.utils.StringUtils;
+import com.music.webservice.config.jwt.JwtAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.web.servlet.ServletListenerRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
@@ -10,11 +11,9 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.provisioning.InMemoryUserDetailsManager;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.session.HttpSessionEventPublisher;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -28,25 +27,27 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   private Environment env;
 
   @Bean
-  @Override
-  public UserDetailsService userDetailsService() {
-    // Tạo ra user trong bộ nhớ
-    InMemoryUserDetailsManager manager = new InMemoryUserDetailsManager();
-    manager.createUser(
-            User.withDefaultPasswordEncoder() // Sử dụng mã hóa password đơn giản
-                    .username("loda")
-                    .password("loda")
-                    .roles("USER") // phân quyền là người dùng.
-                    .build()
-    );
-    return manager;
+  public JwtAuthenticationFilter jwtAuthenticationFilter() {
+    JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter();
+    return jwtAuthenticationFilter;
   }
 
   @Override
   protected void configure(HttpSecurity http) throws Exception {
     http.headers().frameOptions().disable();
-    http.csrf().ignoringAntMatchers("/**").disable();
+    http.csrf().ignoringAntMatchers("/**")
+            .disable()
+            .logout()
+            .logoutRequestMatcher(new AntPathRequestMatcher("/logout"))
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID")
+            .and()
+            .sessionManagement()
+            .maximumSessions(1)
+            .maxSessionsPreventsLogin(true);
     http.cors().configurationSource(corsConfigurationSource());
+    http.authorizeRequests().anyRequest().permitAll();
+    http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
   }
 
   @Bean
@@ -54,11 +55,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     String corsMapping = env.getProperty("security.web.cors-mapping");
     CorsConfiguration configuration = new CorsConfiguration();
     configuration.setAllowCredentials(true);
-    if (StringUtils.isEmpty(corsMapping)) {
-      configuration.addAllowedOrigin("*");
+    if (corsMapping == null || corsMapping.trim().isEmpty()) {
+      configuration.addAllowedOriginPattern("*");
     } else {
       String[] corsArray = corsMapping.split(",");
-      for (String cors: corsArray) {
+      for (String cors : corsArray) {
         configuration.addAllowedOrigin(cors);
       }
     }
@@ -70,8 +71,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
   }
 
   @Bean
-  public PasswordEncoder passwordEncoder() {
-    return new BCryptPasswordEncoder();
+  public static ServletListenerRegistrationBean httpSessionEventPublisher() {
+    return new ServletListenerRegistrationBean(new HttpSessionEventPublisher());
   }
 }
+
 

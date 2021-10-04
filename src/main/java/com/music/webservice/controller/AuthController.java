@@ -25,8 +25,8 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(input));
     }
 
-//    @GetMapping("/logout")
-//    public ResponseEntity logout(HttpServletRequest request) {
-//        return ResponseEntity.ok(authService.logout(request));
-//    }
+    @GetMapping("/logout")
+    public ResponseEntity logout(HttpServletRequest request) {
+        return ResponseEntity.ok(authService.logout(request));
+    }
 }

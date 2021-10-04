@@ -1,4 +1,4 @@
-package com.music.webservice.repositpry;
+package com.music.webservice.repositories;
 
 
 import com.music.webservice.model.User;

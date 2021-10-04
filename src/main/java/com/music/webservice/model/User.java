@@ -10,24 +10,31 @@ import javax.persistence.*;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id")
+    private Long userId;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "image")
     private String image;
 
-    @Column(unique = true, nullable = false)
+    @Column(name = "username", unique = true, nullable = false)
     private String username;
 
-    @Column(nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
+    @Column(name = "address")
     private String address;
 
+    @Column(name = "identity_card")
     private String identityCard;
 
+    @Column(name = "identity_card_image")
     private String identityCardImage;
 
+    @Column(name = "company")
     private String company;
 
 }

@@ -1,7 +1,7 @@
 package com.music.webservice.controller;
 
 
-import com.music.webservice.dto.request.UserDto;
+import com.music.webservice.dto.response.UserDataDto;
 import com.music.webservice.model.User;
 import com.music.webservice.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,8 +25,8 @@ public class UserRestController {
     }
 
     @PostMapping("/find-by-user-name")
-    public ResponseEntity findByUsername(@RequestBody UserDto userDto){
-        return new ResponseEntity(userService.findByUsername(userDto.getUsername()), HttpStatus.CREATED);
+    public ResponseEntity findByUsername(@RequestBody UserDataDto userDto){
+        return new ResponseEntity(userService.findByUsername(userDto.getUserName()), HttpStatus.CREATED);
     }
 
 
